@@ -38,12 +38,10 @@ if (match) {
   const productId = mapping[match];
   entitlementData.product_identifier = productId;
 
-  // Đảm bảo object tồn tại
   if (!obj.subscriber) obj.subscriber = {};
   if (!obj.subscriber.subscriptions) obj.subscriber.subscriptions = {};
   if (!obj.subscriber.entitlements) obj.subscriber.entitlements = {};
 
-  // Gán dữ liệu VIP
   obj.subscriber.subscriptions[productId] = subscriptionData;
   obj.subscriber.entitlements[productId] = entitlementData;
 }
