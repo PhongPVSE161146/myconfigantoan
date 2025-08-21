@@ -1,11 +1,15 @@
-// Script auto unlock VIP Meitu (RevenueCat API)
+// Mapping cho Meitu
+const mapping = {
+  'Meitu': 'meitu.vip.yearly'   // id gói VIP (có thể chỉnh thành monthly/lifetime tuỳ nhu cầu)
+};
 
+var ua = $request.headers["User-Agent"] || $request.headers["user-agent"];
 var obj = JSON.parse($response.body);
 
-// Thêm thông báo để dễ nhận biết
-obj.Attention = "Chúc mừng bạn đã unlock VIP Meitu (auto) thành công!";
+// Thêm chú thích để dễ phân biệt
+obj.Attention = "Chúc mừng bạn đã unlock VIP Meitu thành công!";
 
-// Thông tin gói VIP (subscription)
+// Thông tin subscription giả
 var subscriptionData = {
   is_sandbox: false,
   ownership_type: "PURCHASED",
@@ -19,7 +23,7 @@ var subscriptionData = {
   store: "app_store"
 };
 
-// Thông tin entitlement (quyền VIP)
+// Thông tin entitlement (kích hoạt quyền VIP)
 var entitlementData = {
   grace_period_expires_date: null,
   purchase_date: "2024-07-28T01:04:17Z",
@@ -27,14 +31,22 @@ var entitlementData = {
   expires_date: "2099-12-31T23:59:59Z"
 };
 
-// Đảm bảo object có đầy đủ key
-if (!obj.subscriber) obj.subscriber = {};
-if (!obj.subscriber.subscriptions) obj.subscriber.subscriptions = {};
-if (!obj.subscriber.entitlements) obj.subscriber.entitlements = {};
+// Kiểm tra nếu User-Agent có chứa chữ "Meitu"
+const match = Object.keys(mapping).find(e => ua.includes(e));
 
-// Gán gói VIP (ở đây mình dùng yearly, bạn có thể đổi thành lifetime nếu muốn)
-obj.subscriber.subscriptions["meitu.vip.yearly"] = subscriptionData;
-obj.subscriber.entitlements["meitu.vip.yearly"] = entitlementData;
+if (match) {
+  const productId = mapping[match];
+  entitlementData.product_identifier = productId;
 
-// Xuất response đã patch
+  // Đảm bảo object tồn tại
+  if (!obj.subscriber) obj.subscriber = {};
+  if (!obj.subscriber.subscriptions) obj.subscriber.subscriptions = {};
+  if (!obj.subscriber.entitlements) obj.subscriber.entitlements = {};
+
+  // Gán dữ liệu VIP
+  obj.subscriber.subscriptions[productId] = subscriptionData;
+  obj.subscriber.entitlements[productId] = entitlementData;
+}
+
+// Xuất JSON đã chỉnh sửa
 $done({ body: JSON.stringify(obj) });
